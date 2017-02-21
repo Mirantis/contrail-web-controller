@@ -25,7 +25,7 @@ define([
             'virtual_network_properties': {
                 'forwarding_mode': 'default', // l2 | l3 | l2_l3 | null = default. Delete property if it is set as default / null
                 'allow_transit': false,
-                'rpf': 'enable',
+                'rpf': 'disable',
                 'vxlan_network_identifier': null, //delete if it is null
             },
             'external_ipam': false, // set only when vcenter is enabled
