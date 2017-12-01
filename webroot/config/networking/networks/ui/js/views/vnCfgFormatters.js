@@ -66,6 +66,8 @@ define([
             var dhcpOpts = getValueByJsonPath(subnetObj,
                                 'dhcp_option_list;dhcp_option', []);
             if (dhcpOpts.length) {
+                if (getdhcpValuesByOption(dhcpOpts, "v6-name-servers").length)
+                    return true;
                 return getdhcpValuesByOption(dhcpOpts, 6).indexOf("0.0.0.0")
                         == -1 ? true : false;
             }
@@ -77,6 +79,7 @@ define([
          */
         var getdhcpValuesByOption = function(dhcpObj, optCode) {
             var dhcpValues = '', dhcpObjLen = dhcpObj.length;
+            optCode = String(optCode);
 
             if (dhcpObjLen == 0 ) {
                return dhcpValues;
@@ -84,9 +87,8 @@ define([
 
             try {
                 for (var i = 0; i < dhcpObjLen; i++) {
-                    if (parseInt(dhcpObj[i].dhcp_option_name) ==
-                        parseInt(optCode)) {
-                       dhcpValues += dhcpObj[i].dhcp_option_value + ' '; 
+                    if (String(dhcpObj[i].dhcp_option_name) == optCode) {
+                        dhcpValues += dhcpObj[i].dhcp_option_value + ' ';
                     }
                 }
             } catch (e) {
@@ -456,9 +458,8 @@ define([
                     var ipBlock = ipam['attr'][field][j];
                     var dhcpOpts = getValueByJsonPath(ipBlock,
                                 'dhcp_option_list;dhcp_option', []);
-                    if (dhcpOpts.length) {
-                        returnArr.push(getdhcpValuesByOption(dhcpOpts, 6).split(' ')); 
-                    }
+                    returnArr.push(getdhcpValuesByOption(dhcpOpts, 6).split(' '));
+                    returnArr.push(getdhcpValuesByOption(dhcpOpts, 'v6-name-servers').split(' '));
                 }
             }
 
