@@ -338,15 +338,28 @@ define([
 
         getSubnetDNS: function(attr) {
             var subnetDNSCollection = attr.user_created_dns_servers.toJSON(),
-                subnetDNSArray = [];
+                subnetDNSArrayV4 = [],
+                subnetDNSArrayV6 = [],
+                result = [];
             for(var i = 0; i < subnetDNSCollection.length; i++) {
-                subnetDNSArray.push(subnetDNSCollection[i].ip_address());
+                var list = subnetDNSCollection[i].ip_address().split(' ');
+                for(var j = 0; j < list.length; j++) {
+                    if (isIPv6(list[j])) {
+                        subnetDNSArrayV6.push(list[j]);
+                    } else {
+                        subnetDNSArrayV4.push(list[j]);
+                    }
+                }
             }
-            if (subnetDNSArray.length) {
-                return [{dhcp_option_value: subnetDNSArray.join(' '),
-                        dhcp_option_name: '6'}];
+            if (subnetDNSArrayV4.length) {
+                result.push({dhcp_option_value: subnetDNSArrayV4.join(' '),
+                    dhcp_option_name: '6'});
             }
-            return subnetDNSArray;
+            if (subnetDNSArrayV6.length) {
+                result.push({dhcp_option_value: subnetDNSArrayV6.join(' '),
+                    dhcp_option_name: 'v6-name-servers'});
+            }
+            return result;
         },
 
         readSubnetList: function (modelConfig) {
