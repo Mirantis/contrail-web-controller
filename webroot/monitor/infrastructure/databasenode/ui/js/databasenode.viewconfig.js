@@ -315,7 +315,7 @@ define(['underscore', 'contrail-view', 'legend-view', 'monitor-infra-databasenod
                            },
                            {
                                field:"formattedAnalyticsDbSize",
-                               name:"Analytics DB Size",
+                               name:"DB Size",
                                minWidth:110,
                                sortField:"analyticsDbSize"
                            },
