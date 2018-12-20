@@ -423,7 +423,7 @@ function processAnalyticsQueryStats (collUVE, appData, details, callback)
     var urlLists = [];
     var dataObjArr = [];
     var url = '/analytics/queries';
-    var anaPort = '8081';
+    var anaPort = '9081';
     var opServers = [];
     var opServersCnt = 0;
 
