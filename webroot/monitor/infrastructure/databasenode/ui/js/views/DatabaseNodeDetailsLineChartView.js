@@ -33,7 +33,7 @@ define([
                                     parseFn: function (response) {
                                         var dimensions = ['database_usage.disk_space_used_1k',
                                                           'database_usage.analytics_db_size_1k'];
-                                        var axisLabels = ['Used Space', 'Analytics DB Size']
+                                        var axisLabels = ['Used Space', 'DB Size']
                                         var options = {dimensions:dimensions,axisLabels:axisLabels};
                                         return ctwp.parseLineChartDataForNodeDetails(response,options);
                                     },
@@ -42,7 +42,7 @@ define([
                                         y1Formatter: function (y1Value) {
                                             return formatBytes(y1Value * 1024, true);
                                         },
-                                        y2AxisLabel:'Analytics DB Size',
+                                        y2AxisLabel:'DB Size',
                                         y2Formatter: function (y2Value) {
                                             return formatBytes(y2Value * 1024, true);
                                         },
