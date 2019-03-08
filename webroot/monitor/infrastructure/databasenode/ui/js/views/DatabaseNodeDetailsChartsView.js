@@ -38,7 +38,7 @@ define([
             title: 'Disk Usage',
             prefix:'databaseCollector',
             sparklineTitle1:'Used Space',
-            sparklineTitle2:'Analytics DB Size',
+            sparklineTitle2:'DB Size',
             sparkline1Dimension:'database_usage.disk_space_used_1k',
             sparkline2Dimension:'database_usage.analytics_db_size_1k',
             view: DatabaseNodeDetailsLineChartView,
