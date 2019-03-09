@@ -173,7 +173,7 @@ define([
                     },
                     {
                         key: 'formattedAnalyticsDbSize',
-                        label: 'Analytics DB Size',
+                        label: 'DB Size',
                         keyClass: 'indent-right',
                         templateGenerator: 'TextGenerator'
                     },
