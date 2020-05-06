@@ -295,64 +295,75 @@ function getVMIUVEHealthCheckStatus (svcInstList, appData, callback)
         callback(null, null);
         return;
     }
-    var vmiURL =
-        '/virtual-machine-interfaces?' +
-        'fields=virtual_machine_refs,port_tuple_refs&back_ref_id=' +
-        vmUUIDList.join(',');
-    configApiServer.apiGet(vmiURL, appData, function(error, vmiData) {
-        if ((null != error) || (null == vmiData) ||
-            (null == vmiData['virtual-machine-interfaces']) ||
-            (!vmiData['virtual-machine-interfaces'].length)) {
-            callback(error, null);
-            return;
-        }
-        var vmis = vmiData['virtual-machine-interfaces'];
-        var vmisCnt = vmis.length;
-        var vmiToSvcInstMaps = {};
-        for (var i = 0; i < vmisCnt; i++) {
-            var vmiUUID = commonUtils.getValueByJsonPath(vmis[i], 'uuid',
-                                                        null);
-            var vmiFqn = commonUtils.getValueByJsonPath(vmis[i], 'fq_name',
-                                                        []);
-            vmiFqn = vmiFqn.join(':');
-            var vmUUID =
-                commonUtils.getValueByJsonPath(vmis[i],
-                                               'virtual_machine_refs;0;uuid',
-                                               null);
-            //var portTupleUUID =
-            if (null == vmUUID) {
-                continue;
-            }
-            vmiUUIDList.push(vmiFqn);
-            var svcInstID = vmToSvcInstMaps[vmUUID];
-            if (null != svcInstID) {
-                if (null == instTupleVMIMaps[svcInstID]) {
-                    instTupleVMIMaps[svcInstID] = {};
-                    instTupleVMIMaps[svcInstID][vmUUID] = {};
-                    instTupleVMIMaps[svcInstID][vmUUID]['vmis'] = [];
+    var chunk = 200;
+    var dataObjArr = [];
+    for (var i = 0, j = vmUUIDList.length; i < j; i += chunk) {
+
+        var tempArray = vmUUIDList.slice(i, i + chunk);
+        var vmiURL =
+          '/virtual-machine-interfaces?' +
+          'fields=virtual_machine_refs,port_tuple_refs&back_ref_id=' +
+          tempArray.join(',');
+        commonUtils.createReqObj(dataObjArr, vmiURL, null, null, null, null,
+          appData);
+    }
+    async.map(dataObjArr,
+        commonUtils.getAPIServerResponse(configApiServer.apiGet, true),
+            function(error, vmiData) {
+                if ((null != error) || (null == vmiData) ||
+                    (null == vmiData['virtual-machine-interfaces']) ||
+                    (!vmiData['virtual-machine-interfaces'].length)) {
+                    callback(error, null);
+                    return;
                 }
-                if (null == instTupleVMIMaps[svcInstID][vmUUID]) {
-                    instTupleVMIMaps[svcInstID][vmUUID] = {};
-                    instTupleVMIMaps[svcInstID][vmUUID]['vmis'] = [];
+                var vmis = vmiData['virtual-machine-interfaces'];
+                var vmisCnt = vmis.length;
+                var vmiToSvcInstMaps = {};
+                for (var i = 0; i < vmisCnt; i++) {
+                    var vmiUUID = commonUtils.getValueByJsonPath(vmis[i],
+                                                                 'uuid', null);
+                    var vmiFqn = commonUtils.getValueByJsonPath(vmis[i],
+                                                                'fq_name', []);
+                    vmiFqn = vmiFqn.join(':');
+                    var vmUUID =
+                        commonUtils.getValueByJsonPath(vmis[i],
+                                                       'virtual_machine_refs;0;uuid',
+                                                       null);
+                    //var portTupleUUID =
+                    if (null == vmUUID) {
+                        continue;
+                    }
+                    vmiUUIDList.push(vmiFqn);
+                    var svcInstID = vmToSvcInstMaps[vmUUID];
+                    if (null != svcInstID) {
+                        if (null == instTupleVMIMaps[svcInstID]) {
+                            instTupleVMIMaps[svcInstID] = {};
+                            instTupleVMIMaps[svcInstID][vmUUID] = {};
+                            instTupleVMIMaps[svcInstID][vmUUID]['vmis'] = [];
+                        }
+                        if (null == instTupleVMIMaps[svcInstID][vmUUID]) {
+                            instTupleVMIMaps[svcInstID][vmUUID] = {};
+                            instTupleVMIMaps[svcInstID][vmUUID]['vmis'] = [];
+                        }
+                        instTupleVMIMaps[svcInstID][vmUUID]['vmis'].push(vmiFqn);
+                        vmiToSvcInstMaps[vmiUUID] = vmToSvcInstMaps[vmUUID];
+                    }
                 }
-                instTupleVMIMaps[svcInstID][vmUUID]['vmis'].push(vmiFqn);
-                vmiToSvcInstMaps[vmiUUID] = vmToSvcInstMaps[vmUUID];
-            }
-        }
-        vmiUUIDList = _.uniq(vmiUUIDList);
-        var vmiPostData = {
-            'cfilt': ['UveVMInterfaceAgent:health_check_instance_list',
-            'UveVMInterfaceAgent:ip_address',
-            'UveVMInterfaceAgent:active',
-            'UveVMInterfaceAgent:uuid'],
-            'kfilt': vmiUUIDList
-        };
-        var reqUrl = '/analytics/uves/virtual-machine-interface';
-        opApiServer.apiPost(reqUrl, vmiPostData, appData, function(error, data) {
-            var dataObj = {'vmiData': data,
-                'instTupleVMIMaps': instTupleVMIMaps};
-            callback(error, dataObj);
-        });
+                vmiUUIDList = _.uniq(vmiUUIDList);
+                var vmiPostData = {
+                    'cfilt': ['UveVMInterfaceAgent:health_check_instance_list',
+                    'UveVMInterfaceAgent:ip_address',
+                    'UveVMInterfaceAgent:active',
+                    'UveVMInterfaceAgent:uuid'],
+                    'kfilt': vmiUUIDList
+                };
+                var reqUrl = '/analytics/uves/virtual-machine-interface';
+                opApiServer.apiPost(reqUrl, vmiPostData, appData,
+                  function(error, data) {
+                    var dataObj = {'vmiData': data,
+                        'instTupleVMIMaps': instTupleVMIMaps};
+                    callback(error, dataObj);
+                });
     });
 }
 
